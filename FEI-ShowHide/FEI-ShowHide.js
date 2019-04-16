@@ -1,10 +1,39 @@
-define(['qlik', './properties'], function (qlik, properties) {
+define([
+    'qlik',
+    'translator',
+    './properties',
+    'text!./templates/popover-template.html',
+    'text!./templates/dialog-template.html'
+], function (qlik, translator, properties, popoverTemplate, dialogTemplate) {
+    
+    const CONTEXT_MENU_ITEMS = [
+        {
+            icon: 'lui-icon--export',
+            text: translator.get('contextMenu.exportGroup'),
+            subItems: [
+                {
+                    id: 'back',
+                    icon: 'back-icon lui-icon--triangle-left',
+                    text: translator.get('Common.Back')
+                },
+                {
+                    id: 'export-data',
+                    text: translator.get('contextMenu.export')
+                }
+            ]
+        }
+    ];
+
     return {
         initialProperties: {conditionalVis: [], defaultMasterObject: ''},
-        support: {snapshot: true},
+        support: {
+            snapshot: false,
+            export: false,
+            exportData: false
+        },
         definition: properties,
-        template: '<div style="display:block;  width:100%; height:100%; overflow:visible;"></div>',
-        controller: function ($scope, $element) {
+        template: '<div style="display:block; width:100%; height:100%; overflow:visible;" qva-context-menu="contextMenuFn( $event )"></div>',
+        controller: function ($scope, $element, luiPopover, luiDialog) {
             // Make sure the selections bar can overlay the extension's boundaries
             $(".qv-object .qv-inner-object").css('overflow','visible');
 
@@ -43,6 +72,29 @@ define(['qlik', './properties'], function (qlik, properties) {
                 }
             });
 
+            //Contextmenu to export data
+            $scope.contextMenuFn = function($event) {
+                luiPopover.showToPosition({
+                    template: popoverTemplate,
+                    closeOnEscape: true,
+                    dock: 'right',
+                    x: $event.pageX,
+                    y: $event.pageY,
+                    controller: function($scope) {
+                        $scope.items = CONTEXT_MENU_ITEMS;
+                        $scope.selectItem = function(item) {
+                            if (item.id == 'back') {
+                                $scope.items = CONTEXT_MENU_ITEMS;
+                            } else if(item.id == 'export-data') {
+                                this.close();
+                                exportData();
+                            } else {
+                                $scope.items = item.subItems;
+                            }
+                        }
+                    }
+                });                
+            };
 
             /* If only one condition results in 1, return its visualization ID. Else if default exists, return the default 
             visualization ID, otherwise return null*/
@@ -62,8 +114,8 @@ define(['qlik', './properties'], function (qlik, properties) {
                 else if($scope.component.model.layout.defaultMasterObject){activeChart = $scope.component.model.layout.defaultMasterObject.split('|')[1]}
                 else{activeChart = null}
 
-                console.log('Condition Results:',conditionResults);
-                console.log('Active Chart is: ', activeChart);
+                //console.log('Condition Results:',conditionResults);
+                //console.log('Active Chart is: ', activeChart);
 
                 return activeChart;
             };
@@ -94,6 +146,23 @@ define(['qlik', './properties'], function (qlik, properties) {
                 return $scope.app.destroySessionObject($scope.currentChartModel.layout.qInfo.qId)
                     .then(function() {$scope.currentChartModel = null;});
             };
+
+            //Function to export data of the current chart
+            function exportData() {
+                var qTable = qlik.table($scope.currentChartModel);
+                luiDialog.show({
+                    template: dialogTemplate,
+                    controller: function($scope) {
+                        $scope.title = translator.get('Export.Exporting');
+                        $scope.completed = false;
+                        qTable.exportData({}, function(filepath) {
+                            $scope.completed = true;
+                            $scope.title = translator.get('Export.Completed');
+                            $scope.filepath = filepath;                            
+                        })
+                    }
+                })
+            }            
         },
         paint: function ($element, $layout) {},
         resize: function () {

@@ -1,0 +1,11 @@
+<div class="qv-contextmenu ng-scope" tid="context-menu">
+<div class="lui-popover" style="width: 250px;" lui-class-list="classList">
+    <ul class="lui-list">
+        <li ng-repeat="item in items" class="lui-list__item lui-list__action ng-scope qv-contextmenu-has-submenu has-icon" ng-class="{'back-item': item.id=='back'}" tcl="context-menu-item" qva-activate="selectItem(item)">
+            <i class="lui-list__aside item-icon lui-icon" ng-class="item.icon"></i>
+            <span class="lui-list__text lui-list__action">{{ item.text }}</span>
+            <i ng-if="item.subItems" class="next-icon lui-list__aside lui-icon lui-icon--triangle-right"></i>
+        </li>
+    </ul>
+</div>
+</div>

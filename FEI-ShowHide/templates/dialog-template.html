@@ -1,0 +1,19 @@
+<lui-dialog style="min-width: 502px;">
+    <lui-dialog-header>
+        <lui-dialog-title>
+            {{ title }}
+        </lui-dialog-title>
+    </lui-dialog-header>
+    <lui-dialog-body>
+        <div ng-if="!completed" style="position: relative; height: 80px; overflow: hidden;" class="loading-screen">
+            <div class="spinner">
+                <div class="qv-loader"></div> 
+            </div>
+        </div>
+        <p class="pb-10" ng-if="completed"><span q-translation="Export.CompletedDescription"></span><br><br></p>
+        <p class="pb-10" ng-if="completed"><a href="{{ filepath }}" target="_blank" q-translation="Export.CompletedLink"></a><br></p>
+    </lui-dialog-body>
+    <lui-dialog-footer>
+        <button class="lui-button  lui-dialog__footer-button" ng-click="close();" q-translation="Common.Close"></button>
+    </lui-dialog-footer>
+</lui-dialog>
